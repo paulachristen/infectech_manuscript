@@ -18,10 +18,10 @@ Code and data for the manuscript "Bridging the Gap: Enhancing the Evaluation &am
 │   └── tables/              # Summary tables, if applicable
 ```
 
-## 📊 Analysis Workflow
+## 📊 Workflow
 
 1. **Data Loading and Cleaning**
-   - All raw CSV survey responses are loaded and combined.
+   - All raw CSV survey responses are loaded.
    - Responses are cleaned for missing values, placeholders (e.g. `"Other. Please specify:"`), and merged with a country-to-region dictionary.
 
 2. **Section Completion Flags**
@@ -33,7 +33,7 @@ Code and data for the manuscript "Bridging the Gap: Enhancing the Evaluation &am
    - Section-specific figures are faceted by income group and exported as publication-quality graphics.
 
 4. **Support Functions**
-   - All reusable components (e.g., group label formatting, palette assignment) are housed in `functions.R`.
+   - All reusable components (e.g., group label formatting, palette assignment) are in `functions.R`.
 
 ## 🛠 Requirements
 
@@ -46,13 +46,3 @@ install.packages(c(
   "viridis", "ggtext", "gridExtra", "RColorBrewer", "tidytext"
 ))
 ```
-
-## 📘 Citation
-
-If you use or build upon this codebase, please cite the associated paper:
-
-> Christen, P., et al. *Bridging the Gap: Enhancing the Evaluation & Interpretation of Epidemic Forecasts for Researchers & Policymakers in Resource-Constrained Settings.* The Lancet Digital Health (in review), 2025.
-
-## ✉️ Contact
-
-For questions or feedback, please contact [Paula Christen](mailto:paula.christen@cema.africa).
