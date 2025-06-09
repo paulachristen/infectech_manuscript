@@ -21,6 +21,7 @@ library(viridis)
 library(ggtext)
 library(gridExtra)
 library(RColorBrewer)
+library(scales)
 library(tidytext)
 
 # Source custom functions
@@ -445,6 +446,127 @@ ggsave(file.path(file_path_plots, "Received_Preferred_by_income.png"), width = 1
 
 ```
 
+```{r}
+
+metrics_counts <- df %>%
+  filter(metrics_section_answered > 0) %>%
+  group_by(income_group)  %>%
+  summarise(respondents = n())
+
+Received_format_overall <- summarize_columns_count(
+  df = df,
+  group_col = "income_group", 
+  summary_cols = c("Q13_1", "Q13_2", "Q13_6", 
+                            "Q13_4", "Q13_3", "Q13_5", 
+                            "Q13_7"), 
+  section = "metrics_section_answered")
+
+names(Received_format_overall) <- gsub("\\(.*?\\)|\\[.*?\\]", "", names(Received_format_overall))
+names(Received_format_overall) <- gsub("\\s$", "", names(Received_format_overall)) 
+names(Received_format_overall) <- gsub("\\)$", "", names(Received_format_overall))
+
+# Reshape the data from wide to long format
+df_long <- Received_format_overall %>% 
+  pivot_longer(cols = c("Map":"Scientific research paper"), 
+               names_to = "format", 
+               values_to = "count")
+
+df_long_Received <- df_long
+df_long_Received$type <- "Received"
+
+Preferred_format_overall <- summarize_columns_count(
+  df = df,
+  group_col = "income_group",
+  summary_cols = c("Q14_1", "Q14_2", "Q14_6", 
+                            "Q14_4", "Q14_3", "Q14_5", 
+                            "Q14_7"), 
+  section = "metrics_section_answered")
+
+names(Preferred_format_overall) <- gsub("\\(.*?\\)|\\[.*?\\]", "", names(Preferred_format_overall))
+names(Preferred_format_overall) <- gsub("\\s$", "", names(Preferred_format_overall)) 
+names(Preferred_format_overall) <- gsub("\\)$", "", names(Preferred_format_overall))
+names(Preferred_format_overall)[6] <- c("Point estimates")
+
+# Reshape the data from wide to long format
+df_long <- Preferred_format_overall %>% 
+  pivot_longer(cols = c("Map":"Scientific research paper"), 
+               names_to = "format", 
+               values_to = "count")
+
+df_long_Preferred <- df_long
+df_long_Preferred$type <- "Preferred"
+
+df_long <- rbind(df_long_Received, df_long_Preferred)
+
+df_long$type <- factor(df_long$type, levels=c("Received","Preferred"))
+
+df_long <- df_long %>%
+  mutate(format = str_wrap(format, width = 20))
+
+df_long <- df_long %>%
+  left_join(metrics_counts, by = "income_group")
+
+# Set income_group factor order
+df_long$income_group <- factor(df_long$income_group, levels = c("HIC", "UMIC", "LMIC", "LIC", "Non-country-specific"))
+
+# Create ordered income_group_label based on the ordered income_group
+df_long <- df_long %>%
+  mutate(income_group_label = paste0(as.character(income_group), " (n = ", respondents, ")"))
+
+# Ensure consistent label order in facets
+income_levels_ordered <- df_long %>%
+  distinct(income_group, income_group_label) %>%
+  arrange(factor(income_group, levels = c("HIC", "UMIC", "LMIC", "LIC", "Non-country-specific"))) %>%
+  pull(income_group_label)
+
+df_long$income_group_label <- factor(df_long$income_group_label, levels = income_levels_ordered)
+
+# Prepare data
+df_long <- df_long %>%
+  mutate(
+    proportion = count / respondents,
+    format = fct_rev(factor(format)),  # so it appears top-down on y-axis
+    type = factor(type, levels = c("Received", "Preferred")),  # order L to R
+    income_group_label = factor(income_group_label, levels = income_levels_ordered)
+  )
+
+# Reshape from long to wide: columns = Received / Preferred proportions
+df_wide <- df_long %>%
+  select(income_group_label, format, type, proportion) %>%
+  pivot_wider(names_from = type, values_from = proportion)
+
+# Ensure levels are consistent for plotting
+df_wide <- df_wide %>%
+  mutate(format = fct_rev(factor(format))) %>%
+  mutate(income_group_label = factor(income_group_label, levels = income_levels_ordered))
+
+# Plot: Received vs Preferred
+ggplot(df_wide, aes(x = Received, y = Preferred, color = format)) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "grey50") +
+  geom_point(size = 3) +
+  facet_wrap(~ income_group_label, ncol = 2) +
+  scale_x_continuous(labels = percent_format(), limits = c(0, 1)) +
+  scale_y_continuous(labels = percent_format(), limits = c(0, 1)) +
+  labs(
+    x = "% Received", 
+    y = "% Preferred", 
+    color = "Format Type"
+  ) +
+  theme_minimal() +
+  theme(
+    legend.position = "bottom",
+    axis.title.x = element_text(size = 14),
+    axis.title.y = element_text(size = 14),
+    axis.text = element_text(size = 12),
+    legend.text = element_text(size = 12),
+    legend.title = element_text(size = 13),
+    strip.text = element_text(size = 13)
+  )
+
+# Save the plot
+ggsave(file.path(file_path_plots, "Received_vs_Preferred_by_income_scatter.png"), width = 14, height = 10)
+```
+
 Figure 1
 
 ```{r echo=FALSE}
@@ -628,6 +750,8 @@ df_long <- Q25_prop_region %>%
     phase = str_wrap(phase, width = 62)
   )
 
+df_long <- df_long %>%
+  filter(count > 0)
 # Step 3: Prepare labels and plotting values
 ordered_income_groups <- c("HIC", "UMIC", "LMIC", "LIC")
 
