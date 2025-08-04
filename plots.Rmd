@@ -305,7 +305,15 @@ ggplot(grouped_sum_long, aes(x = section, y = value, color = income_group, group
   ) +
   scale_y_continuous(expand = expansion(mult = c(0, 0.1)))
 
-ggsave(file.path(file_path_plots, "survey_dropout.png"), height = 6, width = 7, units = "in")
+ggsave(file.path(file_path_plots, "survey_dropout.pdf"), height = 6, width = 7, units = "in", dpi = 300)
+
+ggsave(
+  filename = file.path(file_path_plots, "survey_dropout.pdf"),
+  height = 6,
+  width = 7,
+  units = "in",
+  dpi = 300
+)
 
 ```
 
@@ -442,7 +450,7 @@ ggplot(df_long, aes(x = proportion, y = y, group = interaction(income_group_labe
     panel.grid.major.y = element_line(color = "grey90")
   )
 
-ggsave(file.path(file_path_plots, "Received_Preferred_by_income.png"), width = 14, height = 10)
+ggsave(file.path(file_path_plots, "Received_Preferred_by_income.pdf"), width = 14, height = 10, dpi = 300)
 
 ```
 
@@ -564,7 +572,7 @@ ggplot(df_wide, aes(x = Received, y = Preferred, color = format)) +
   )
 
 # Save the plot
-ggsave(file.path(file_path_plots, "Received_vs_Preferred_by_income_scatter.png"), width = 14, height = 10)
+ggsave(file.path(file_path_plots, "Received_vs_Preferred_by_income_scatter.pdf"), width = 14, height = 10, dpi = 300)
 ```
 
 Figure 1
@@ -640,7 +648,7 @@ ggplot(df_long, aes(x = way_of_communication, y = proportion, fill = color_group
         strip.text = element_text(size = 14),
         plot.margin = margin(t = 10, r = 10, b = 30, l = 20))
 
-ggsave(file.path(file_path_plots, "barplot_metrics_by_income_colored_overall.png"), width = 13.3, height = 13)
+ggsave(file.path(file_path_plots, "barplot_metrics_by_income_colored_overall.pdf"), width = 13.3, height = 13, dpi = 300)
 
 ```
 
@@ -728,7 +736,7 @@ ggplot(df_summary, aes(x = prop_plot, y = phase, fill = income_group_label)) +
   )
 
 # Save plot (optional)
-ggsave(file.path(file_path_plots, "confidence_in_modelling_results.png"), width = 16, height = 8)
+ggsave(file.path(file_path_plots, "confidence_in_modelling_results.pdf"), width = 16, height = 8, dpi = 300)
 ```
 
 Figure 4: What are barriers to using evidence from epidemic forecasts? Differences between income groups.
@@ -813,5 +821,5 @@ ggplot(df_summary, aes(x = prop_plot, y = phase, fill = income_group_label)) +
   )
 
 # Step 7: Export
-ggsave(file.path(file_path_plots, "barriers_by_income.png"), width = 15, height = 10)
+ggsave(file.path(file_path_plots, "barriers_by_income.pdf"), width = 15, height = 10, dpi = 300)
 ```
