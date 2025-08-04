@@ -254,14 +254,6 @@ cols_to_check <- which(names(df_qual_analysis) == "Q17#1_1_1"):which(names(df_qu
 # Remove rows with all NAs in the specified columns
 df_filtered <- df_qual_analysis[!apply(df_qual_analysis[, cols_to_check], 1, function(row) all(is.na(row))), ]
 
-write.xlsx(df_filtered, file = "~/Library/CloudStorage/GoogleDrive-paula.christen@cema.africa/My Drive/Infectech/survey/data/processed/qual_analysis_14Jan25.xlsx") 
-
-path_country_survey <- "~/Library/CloudStorage/GoogleDrive-paula.christen@cema.africa/My Drive/Infectech/survey/data/processed/country_survey_data.RData"
-save(sub_df, file = path_country_survey)
-
-path_survey <- "~/Library/CloudStorage/GoogleDrive-paula.christen@cema.africa/My Drive/Infectech/survey/data/processed/survey_data.RData"
-save(df, file = path_survey)
-
 df <- df %>%
   filter(!is.na(df$ResponseId))
 
