@@ -1,0 +1,16 @@
+Public Dataset Anonymization Report
+===================================
+Input: data/processed/df_filtered.csv
+Rows (original): 97
+Columns (original): 69
+Columns dropped: 18
+Dropped columns: Q3_other, Q1_6_TEXT, Q13_9_TEXT, Q14_9_TEXT, Q16_14_TEXT, Q24_5_TEXT, Q25_9_TEXT, Q10_4, Q10_5, Q171_1_1, Q171_2_1, Q171_3_1, Q171_4_1, Q171_5_1, Q10_6, Q19, Q21, Q23
+Columns coarsened (k<5): Q1, Q8
+Duplicate rows removed: 0
+Rows (public): 97
+Columns (public): 51
+
+Manual checks required before release:
+1. Confirm no remaining direct identifiers (names, emails, institutions).
+2. Confirm no country/profession combinations produce unique individuals.
+3. Confirm all qualitative quotes are excluded from public files.
