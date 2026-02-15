@@ -1148,7 +1148,7 @@ library(readr)
 # 1. READ DATA
 # --------------------------------------------------------------------------
 
-raw <- read_csv("data/processed/Infectech+-+v1.0_15+February+2026_01.33.csv",
+raw <- read_csv("data/raw/Infectech+-+v1.0_15+February+2026_01.33.csv",
                 show_col_types = FALSE)
 
 # Drop Qualtrics header rows (row 1 = sub-header text, row 2 = import IDs)
@@ -1391,11 +1391,3 @@ p <- ggplot(plot_df,
     plot.margin        = margin(10, 15, 5, 5)
   ) +
   guides(colour = guide_legend(nrow = 1), shape = guide_legend(nrow = 1))
-
-# --------------------------------------------------------------------------
-# 8. SAVE
-# --------------------------------------------------------------------------
-
-ggsave("Table1_dotplot.pdf", p, width = 8, height = 4.5,
-       device = cairo_pdf)
-ggsave("Table1_dotplot.png", p, width = 8, height = 4.5, dpi = 300)
