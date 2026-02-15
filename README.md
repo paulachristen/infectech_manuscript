@@ -1,5 +1,12 @@
-# Evaluation and Interpretation of Epidemic Forecasts by Researchers and Policymakers in Resource-Constrained Settings: A Global Mixed-Methods Study
-Code and data for the manuscript "Bridging the Gap: Enhancing the Evaluation &amp; Interpretation of Epidemic Forecasts for Researchers &amp; Policymakers in Resource-Constrained Settings." This repository contains all analysis scripts, plotting code, and data processing steps used in the study, supporting reproducibility and transparency.
+# Enhancing Epidemic Forecast Usability Policymakers: A Global Mixed-Methods Study
+Code and data for the manuscript "Enhancing Epidemic Forecast Usability Policymakers: A Global Mixed-Methods Study". This repository contains all analysis scripts, plotting code, and data processing steps used in the study, supporting reproducibility and transparency.
+
+## Public Data Release
+
+For journal-compliant public sharing of de-identified data, use:
+
+- `public_release/README.md`
+- `public_release/scripts/create_public_dataset.R`
 
 
 ## 📂 Repository Structure
