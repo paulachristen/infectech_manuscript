@@ -1,3 +1,16 @@
+# Strict allowlist for public GitHub upload
+# By default, ignore everything in this repo.
+*
+
+# Keep repository ignore rules file
+!.gitignore
+
+# Keep only consolidated shareable files
+!analysis_code.R
+!plotting_code.R
+!manuscript.Rmd
+
+# Optional local R artifacts
 .Rproj.user
 .Rhistory
 .RData
