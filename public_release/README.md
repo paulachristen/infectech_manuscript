@@ -6,11 +6,7 @@ This folder is prepared for public sharing and citation.
 
 - `data/survey_anonymized.csv`: de-identified survey data generated from internal data.
 - `data/codebook_public.csv`: variable dictionary for the shared dataset.
-- `data/interview_theme_counts_template.csv`: optional aggregate-only qualitative summary table.
 - `scripts/create_public_dataset.R`: reproducible anonymization script.
-- `DATA_AVAILABILITY_STATEMENT.md`: manuscript-ready language for data availability.
-
-Do **not** share raw interview files, participant lists, or any direct/indirect identifiers.
 
 ## Generate anonymized data
 
