@@ -9,8 +9,3 @@ Columns coarsened (k<5): Q1, Q8
 Duplicate rows removed: 0
 Rows (public): 97
 Columns (public): 51
-
-Manual checks required before release:
-1. Confirm no remaining direct identifiers (names, emails, institutions).
-2. Confirm no country/profession combinations produce unique individuals.
-3. Confirm all qualitative quotes are excluded from public files.
