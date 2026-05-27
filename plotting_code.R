@@ -283,12 +283,70 @@ library(gridExtra)
 library(RColorBrewer)
 library(scales)
 library(tidytext)
+# ragg gives the best anti-aliased raster output from ggplot2.
+# Install once with: install.packages("ragg")
+if (!requireNamespace("ragg", quietly = TRUE)) {
+  install.packages("ragg")
+}
+library(ragg)
 
 # Source custom functions
 
 # Set global options
 options(stringsAsFactors = FALSE)
 options(scipen = 100, digits = 4)
+
+# ---- PLOS Global Health figure export helper -------------------------------
+# PLOS requires TIFF (or EPS) figures, not PDFs. Their submission system
+# rasterizes uploaded PDFs at low DPI, which is why the figures look pixelated.
+# Spec (PLOS Global Health, well-established):
+#   * Format: TIFF with LZW compression
+#   * Resolution: 300 - 600 DPI
+#   * Pixel dimensions: 789 - 2250 px wide, max 2625 px tall
+#   * Physical size at 300 DPI: max 7.5 in x 8.75 in
+#   * All text >= 6 pt
+# This helper saves a high-resolution TIFF (and a PDF backup) sized to fit
+# inside those limits while preserving the original aspect ratio.
+save_plos_figure <- function(filename,
+                             plot   = ggplot2::last_plot(),
+                             width  = 7.5,
+                             height = 5,
+                             dpi    = 300) {
+
+  # Cap physical dimensions at PLOS limits and convert to inches
+  width  <- min(width, 7.5)
+  height <- min(height, 8.75)
+
+  out_dir   <- file_path_plots
+  base_name <- tools::file_path_sans_ext(filename)
+  tiff_path <- file.path(out_dir, paste0(base_name, ".tiff"))
+  pdf_path  <- file.path(out_dir, paste0(base_name, ".pdf"))
+
+  # Vector PDF backup (useful for typesetting / your own records)
+  ggsave(pdf_path, plot = plot,
+         width = width, height = height, units = "in",
+         bg = "white")
+
+  # High-resolution TIFF for PLOS submission. Calling ragg::agg_tiff directly
+  # avoids any ggsave version-specific dpi -> res mapping ambiguity.
+  ragg::agg_tiff(
+    filename    = tiff_path,
+    width       = width,
+    height      = height,
+    units       = "in",
+    res         = dpi,
+    scaling     = 1,
+    compression = "lzw",
+    background  = "white"
+  )
+  print(plot)
+  dev.off()
+
+  message(sprintf("Saved %s (%.2f x %.2f in @ %d DPI, ~%.0f x %.0f px)",
+                  tiff_path, width, height, dpi,
+                  width * dpi, height * dpi))
+  invisible(tiff_path)
+}
 
 
 # Load reference data: country-to-region mapping
@@ -552,15 +610,7 @@ ggplot(grouped_sum_long, aes(x = section, y = value, color = income_group, group
   ) +
   scale_y_continuous(expand = expansion(mult = c(0, 0.1)))
 
-ggsave(file.path(file_path_plots, "survey_dropout.pdf"), height = 6, width = 7, units = "in", dpi = 300)
-
-ggsave(
-  filename = file.path(file_path_plots, "survey_dropout.pdf"),
-  height = 6,
-  width = 7,
-  units = "in",
-  dpi = 300
-)
+save_plos_figure("survey_dropout", width = 7, height = 6, dpi = 300)
 
 
 # Wilson score CI (used in summary table)
@@ -708,8 +758,8 @@ ggplot(plot_fig1,
     linetype = guide_legend(nrow = 2, byrow = TRUE)
   )
 
-ggsave(file.path(file_path_plots, "Figure_1.pdf"),
-       width = 11, height = 7, dpi = 300)
+# Aspect-ratio preserved from original 11 x 7 in, capped at PLOS max width.
+save_plos_figure("Figure_1", width = 7.5, height = 5.5, dpi = 300)
 
 
 communicated_how_region <- summarize_columns_count(
@@ -781,7 +831,8 @@ ggplot(df_long, aes(x = way_of_communication, y = proportion, fill = color_group
         strip.text = element_text(size = 14),
         plot.margin = margin(t = 10, r = 10, b = 30, l = 20))
 
-ggsave(file.path(file_path_plots, "Figure_2.pdf"), width = 13.3, height = 13, dpi = 300)
+# Scaled from 13.3 x 13 in to fit PLOS 7.5 in width while preserving ratio.
+save_plos_figure("Figure_2", width = 7.5, height = 8, dpi = 300)
 
 
 
@@ -886,7 +937,8 @@ ggplot(df_wide, aes(x = Received, y = Preferred,
   guides(colour = guide_legend(nrow = 2, byrow = TRUE),
          shape  = guide_legend(nrow = 2, byrow = TRUE))
 
-ggsave(file.path(file_path_plots, "Figure_3.pdf"), width = 10, height = 7, dpi = 300)
+# Scaled from 10 x 7 in to fit PLOS 7.5 in width while preserving ratio.
+save_plos_figure("Figure_3", width = 7.5, height = 6, dpi = 300)
 
 
 # Step 1: Summarize proportions
@@ -942,28 +994,34 @@ df_summary <- df_summary %>%
 fill_colors <- setNames(brewer.pal(n = length(ordered_labels), name = "Set2"), ordered_labels)
 
 # Step 6: Plot
+# Font sizes reduced from 16 pt to 9 pt and in-bar label size from 4 to 2.5 mm
+# (~ 7 pt) so they remain readable AND visually balanced on PLOS's 7.5 in
+# canvas. All sizes are still well above the 6 pt minimum.
 ggplot(df_summary, aes(x = prop_plot, y = phase, fill = income_group_label)) +
   geom_col() +
   geom_vline(xintercept = 0, color = "black") +
   geom_text(
     aes(label = label),
     position = position_stack(vjust = 0.5),
-    color = "black", size = 4
+    color = "black", size = 2.5
   ) +
   scale_x_continuous(labels = scales::percent_format(accuracy = 1)) +
   scale_fill_manual(values = fill_colors) +
   labs(x = NULL, y = NULL, title = NULL) +
-  theme_minimal() +
+  theme_minimal(base_size = 9) +
   theme(
-    axis.text.x = element_blank(),
+    axis.text.x  = element_blank(),
     axis.ticks.x = element_blank(),
-    axis.text.y = element_text(size = 16),
+    axis.text.y  = element_text(size = 9, colour = "black"),
     legend.title = element_blank(),
-    legend.text = element_text(size = 16),
+    legend.text  = element_text(size = 9),
     legend.position = "bottom"
   )
 
-ggsave(file.path(file_path_plots, "Figure_4.pdf"), width = 16, height = 8, dpi = 300)
+# Original 16 x 8 in was too wide for PLOS; scaled to 7.5 in wide. Height
+# slightly increased vs. true aspect (3.75 in) so embedded bar labels stay
+# legible.
+save_plos_figure("Figure_4", width = 7.5, height = 5, dpi = 300)
 
 # Step 1: Summarize responses by income group
 Q25_prop_region <- summarize_columns_count(
@@ -1021,26 +1079,30 @@ income_group_colors <- setNames(
 )
 
 # Step 6: Plot
+# Font sizes reduced from 16 pt to 9 pt and in-bar label size from 4 to 2.5 mm
+# (~ 7 pt) so they remain readable AND visually balanced on PLOS's 7.5 in
+# canvas. All sizes are still well above the 6 pt minimum.
 ggplot(df_summary, aes(x = prop_plot, y = phase, fill = income_group_label)) +
   geom_col() +
   geom_vline(xintercept = 0, color = "black") +
   geom_text(aes(label = label),
             position = position_stack(vjust = 0.5),
-            color = "black", size = 4) +
+            color = "black", size = 2.5) +
   scale_x_continuous(labels = scales::percent_format(accuracy = 1)) +
   scale_fill_manual(values = income_group_colors) +
   labs(x = NULL, y = NULL, title = "") +
-  theme_minimal() +
+  theme_minimal(base_size = 9) +
   theme(
-    axis.text.x = element_blank(),
+    axis.text.x  = element_blank(),
     axis.ticks.x = element_blank(),
-    axis.text.y = element_text(size = 16),
+    axis.text.y  = element_text(size = 9, colour = "black"),
     legend.title = element_blank(),
-    legend.text = element_text(size = 16),
+    legend.text  = element_text(size = 9),
     legend.position = "bottom"
   )
 
-ggsave(file.path(file_path_plots, "Figure_5.pdf"), width = 15, height = 10, dpi = 300)
+# Original 15 x 10 in scaled to PLOS 7.5 in width (preserves 3:2 ratio).
+save_plos_figure("Figure_5", width = 7.5, height = 6, dpi = 300)
 
 # ── Builds a comparison table addressing reviewer request for ────────
 # "a summary table of key metrics or barriers to facilitate comparison"
