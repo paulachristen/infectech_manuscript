@@ -784,7 +784,7 @@ df_long <- communicated_how_region %>%
   ungroup()
 
 df_long <- df_long %>%
-  mutate(way_of_communication = str_wrap(way_of_communication, width = 30))
+  mutate(way_of_communication = str_wrap(way_of_communication, width = 35))
 
 df_long$income_group_label <- paste0(df_long$income_group, " (n = ", df_long$n, ")")
 
@@ -806,7 +806,7 @@ df_long <- df_long %>%
   mutate(
     income_group = factor(income_group, levels = c("HIC", "UMIC", "LMIC", "LIC", "Non-country-specific")),
     income_group_label = paste0(income_group, " (n = ", n, ")"),
-    way_of_communication = reorder_within(way_of_communication, -proportion, income_group)
+    way_of_communication = reorder_within(way_of_communication, proportion, income_group)
   ) %>%
   mutate(
     income_group_label = factor(income_group_label, levels = paste0(
@@ -815,24 +815,35 @@ df_long <- df_long %>%
     ))
   )
 
-# Step 4: Plot
-ggplot(df_long, aes(x = way_of_communication, y = proportion, fill = color_group)) +
+# Step 4: Plot — horizontal bars so the long metric labels don't overlap
+ggplot(df_long, aes(y = way_of_communication, x = proportion, fill = color_group)) +
   geom_col() +
-  scale_y_continuous(labels = scales::percent_format()) +
-  scale_fill_manual(values = c("Top 3 Overall" = "darkgreen", 
-                               "Bottom 3 Overall" = "firebrick", 
+  scale_x_continuous(labels = scales::percent_format(accuracy = 1),
+                     expand = expansion(mult = c(0, 0.05))) +
+  scale_fill_manual(values = c("Top 3 Overall" = "darkgreen",
+                               "Bottom 3 Overall" = "firebrick",
                                "Other" = "grey70")) +
-  labs(x = "Metric", y = "Proportion", fill = "") +
-  facet_wrap(. ~ income_group_label, scales = "free_x", ncol = 2) +
-  scale_x_reordered() +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1),
-        legend.position = "bottom", 
-        strip.text = element_text(size = 14),
-        plot.margin = margin(t = 10, r = 10, b = 30, l = 20))
+  labs(y = NULL, x = "Proportion", fill = "") +
+  facet_wrap(. ~ income_group_label, scales = "free_y", ncol = 2,
+             labeller = labeller(income_group_label = function(x) sub(" \\(n =", "\n(n =", x))) +
+  scale_y_reordered() +
+  theme_minimal(base_size = 10) +
+  theme(axis.text.y      = element_text(size = 8, lineheight = 0.85,
+                                        colour = "black"),
+        axis.text.x      = element_text(size = 8, colour = "black"),
+        axis.title.x     = element_text(size = 10),
+        legend.position  = "bottom",
+        legend.text      = element_text(size = 9),
+        strip.text       = element_text(size = 10, face = "bold",
+                                        lineheight = 0.9, margin = margin(t = 4, b = 4)),
+        panel.spacing.x  = unit(1.4, "lines"),
+        panel.spacing.y  = unit(1.2, "lines"),
+        panel.grid.major.y = element_blank(),
+        panel.grid.minor   = element_blank(),
+        plot.margin      = margin(t = 10, r = 14, b = 10, l = 6))
 
-# Scaled from 13.3 x 13 in to fit PLOS 7.5 in width while preserving ratio.
-save_plos_figure("Figure_2", width = 7.5, height = 8, dpi = 300)
+# Horizontal layout — extra height keeps each label on its own row.
+save_plos_figure("Figure_2", width = 7.5, height = 9.5, dpi = 300)
 
 
 
